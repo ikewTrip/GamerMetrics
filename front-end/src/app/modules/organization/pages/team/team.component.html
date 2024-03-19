@@ -1,0 +1,192 @@
+<div class="container">
+    <h3 class="mb-3" >Team {{teamInfo.name}}</h3>
+    <p>Team name: {{teamInfo.name}}</p>
+    <p>Team description: {{teamInfo.description}}</p>
+    <p>Creation date: {{teamInfo.creationDate | date:"long"}} </p>
+
+    <ng-container *ngIf="organizationRole == 'CREATOR'">
+      <a *ngIf="!editTeamMode" (click)="changeEditTeamMode()"><button type="button" class="btn btn-dark mb-4">Edit Team Info</button></a>
+      <a *ngIf="editTeamMode" (click)="changeEditTeamMode()"><button type="button" class="btn btn-outline-dark mb-4">Hide</button></a>
+
+      <a *ngIf="!deleteTeamMode" (click)="changeDeleteTeamMode()"><button type="button" class="btn btn-danger mx-3 mb-4">Delete Team</button></a>
+      <a *ngIf="deleteTeamMode" (click)="changeDeleteTeamMode()"><button type="button" class="btn btn-danger mx-3 mb-4">Hide</button></a>
+      <a *ngIf="deleteTeamMode" (click)="deleteTeam()"><button type="button" class="btn btn-outline-danger mb-4">Confirm</button></a>
+
+      <div *ngIf="editTeamMode">
+        <form #editTeamForm="ngForm" (ngSubmit)="editTeamInfo(editTeamForm)">
+          <h3 class="form-signin-heading">Edit Team Info</h3>
+
+          <br/>
+          <label for="EditName" class="sr-only">Team Name</label>
+          <input type="text" id="EditName" name="EditName" [(ngModel)]="editTeamRequest.name"
+                 class="form-control" placeholder="enter name of team here" required>
+
+          <br/>
+          <label for="EditDescription" class="sr-only">Description</label>
+          <input type="text" id="EditDescription" name="EditDescription" [(ngModel)]="editTeamRequest.description"
+                 class="form-control mb-4" placeholder="enter description here" required>
+
+          <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+          <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!editTeamForm.valid">Save</button>
+
+        </form>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="organizationRole == 'CREATOR'">
+      <div *ngIf="participants.length == 6">
+        <p>Team is full</p>
+      </div>
+      <div *ngIf="participants.length < 6">
+        <a *ngIf="!inviteUserMode" (click)="changeInviteUserMode()"><button type="button" class="btn btn-dark mb-4">Invite</button></a>
+        <a *ngIf="inviteUserMode" (click)="changeInviteUserMode()"><button type="button" class="btn btn-outline-dark mb-4">Hide</button></a>
+
+        <div *ngIf="inviteUserMode">
+          <form #inviteUserForm="ngForm" (ngSubmit)="inviteUser(inviteUserForm)">
+            <h3 class="form-signin-heading">Invite participant</h3>
+
+            <br/>
+            <label for="nickname" class="sr-only">Nickname</label>
+            <input type="text" id="nickname" name="nickname" [(ngModel)]="inviteUserRequest.nickName"
+                   class="form-control" placeholder="enter nickname here" required>
+
+            <br/>
+            <label for="message" class="sr-only">Message</label>
+            <input type="text" id="message" name="message" [(ngModel)]="inviteUserRequest.message"
+                   class="form-control" placeholder="enter message" required>
+
+            <br/>
+            <label for="role" class="sr-only">Role</label>
+            <select [(ngModel)]="inviteUserRequest.organizationRoleName"
+                    name="role" id="role" class="form-select mb-4" required>
+              <option value="PLAYER">PLAYER</option>
+              <option value="TRAINER">TRAINER</option>
+            </select>
+
+            <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+            <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!inviteUserForm.valid">Invite</button>
+          </form>
+        </div>
+      </div>
+    </ng-container>
+
+    <h4 class="mt-5">Team members:</h4>
+    <p *ngIf="participants.length == 0">No members yet</p>
+
+    <div *ngFor="let participant of participants">
+        <hr>
+        <p><span class="fw-bold">Nickname:</span> {{participant.nickName}}</p>
+        <p><span class="fw-bold">First name:</span> {{participant.firstName}}</p>
+        <p><span class="fw-bold">Last name:</span> {{participant.lastName}}</p>
+        <p><span class="fw-bold">Email:</span> {{participant.email}}</p>
+        <p><span class="fw-bold">Role in team:</span> {{participant.organizationRole}}</p>
+        <ng-container *ngIf="organizationRole == 'CREATOR'">
+          <a *ngIf="!dismissParticipantMode" (click)="changeDismissParticipantMode()"><button type="button" class="btn btn-danger mx-3 mb-4">Dismiss</button></a>
+          <a *ngIf="dismissParticipantMode" (click)="changeDismissParticipantMode()"><button type="button" class="btn btn-danger mx-3 mb-4">Hide</button></a>
+          <a *ngIf="dismissParticipantMode" (click)="dismissParticipant(participant.nickName)"><button type="button" class="btn btn-outline-danger mb-4">Confirm</button></a>
+        </ng-container>
+    </div>
+
+    <h4 class="mt-5">Team trainings:</h4>
+    <p *ngIf="participants.length == 0">No members yet</p>
+    <ng-container *ngIf="organizationRole == 'TRAINER'">
+      <a *ngIf="!createTrainingMode" (click)="changeCreateTrainingMode()"><button type="button" class="btn btn-dark mb-4">Create Training</button></a>
+      <a *ngIf="createTrainingMode" (click)="changeCreateTrainingMode()"><button type="button" class="btn btn-outline-dark mb-4">Hide</button></a>
+
+      <div *ngIf="createTrainingMode">
+        <form #createTrainingForm="ngForm" (ngSubmit)="createTraining(createTrainingForm)">
+          <h3 class="form-signin-heading">Create Training</h3>
+
+          <br/>
+          <label for="trainingName" class="sr-only">Training Name</label>
+          <input type="text" id="trainingName" name="trainingName" [(ngModel)]="createTrainingFormData.name"
+                 class="form-control" placeholder="enter name of training here" required>
+
+          <br/>
+          <label for="trainingDescription" class="sr-only">Description</label>
+          <input type="text" id="trainingDescription" name="trainingDescription" [(ngModel)]="createTrainingFormData.description"
+                 class="form-control mb-4" placeholder="enter description here" required>
+
+          <br/>
+          <label for="trainingStartDate" class="sr-only">Start time</label>
+          <input type="date" id="trainingStartDate" name="trainingStartDate" [(ngModel)]="createTrainingFormData.startDate"
+                 class="form-control " placeholder="enter start date here" required>
+          <label for="trainingStartTime" class="sr-only"></label>
+          <input type="time" id="trainingStartTime" name="trainingStartTime" [(ngModel)]="createTrainingFormData.startTime"
+                 class="form-control mb-4" placeholder="enter start time here" required>
+
+          <br/>
+          <label for="trainingEndDate" class="sr-only">End time</label>
+          <input type="date" id="trainingEndDate" name="trainingEndDate" [(ngModel)]="createTrainingFormData.endDate"
+                 class="form-control " placeholder="enter end date here" required>
+          <label for="trainingEndTime" class="sr-only"></label>
+          <input type="time" id="trainingEndTime" name="trainingEndTime" [(ngModel)]="createTrainingFormData.endTime"
+                 class="form-control mb-4" placeholder="enter end time here" required>
+
+          <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+          <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!createTrainingForm.valid">Create</button>
+
+        </form>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="organizationRole != null">
+      <p *ngIf="trainings.length == 0">No trainings yet</p>
+
+      <div *ngFor="let training of trainings">
+        <hr>
+        <p><span class="fw-bold">Name:</span> {{training.name}}</p>
+        <p><span class="fw-bold">First name:</span> {{training.description}}</p>
+        <p><span class="fw-bold">Creation date:</span> {{training.creationDate | date:"long"}}</p>
+        <p><span class="fw-bold">Start time:</span> {{training.startTime | date:"long"}}</p>
+        <p><span class="fw-bold">End time:</span> {{training.endTime | date:"long"}}</p>
+        <ng-container *ngIf="organizationRole == 'TRAINER'">
+          <a *ngIf="!editTrainingMode" (click)="changeEditTrainingMode()"><button type="button" class="btn btn-dark mb-4">Edit</button></a>
+          <a *ngIf="editTrainingMode" (click)="changeEditTrainingMode()"><button type="button" class="btn btn-outline-dark mb-4">Hide</button></a>
+
+          <div *ngIf="editTrainingMode">
+            <form #editTrainingForm="ngForm" (ngSubmit)="editTraining(training.id, editTrainingForm)">
+              <h3 class="form-signin-heading">Edit Training</h3>
+
+              <br/>
+              <label for="editTrainingName" class="sr-only">Training Name</label>
+              <input type="text" id="editTrainingName" name="editTrainingName" [(ngModel)]="editTrainingFormData.name"
+                     class="form-control" placeholder="enter name of training here" required>
+
+              <br/>
+              <label for="editTrainingDescription" class="sr-only">Description</label>
+              <input type="text" id="editTrainingDescription" name="editTrainingDescription" [(ngModel)]="editTrainingFormData.description"
+                     class="form-control mb-4" placeholder="enter description here" required>
+
+              <br/>
+              <label for="editTrainingStartDate" class="sr-only">Start time</label>
+              <input type="date" id="editTrainingStartDate" name="editTrainingStartDate" [(ngModel)]="editTrainingFormData.startDate"
+                     class="form-control " placeholder="enter start date here" required>
+              <label for="editTrainingStartTime" class="sr-only"></label>
+              <input type="time" id="editTrainingStartTime" name="editTrainingStartTime" [(ngModel)]="editTrainingFormData.startTime"
+                     class="form-control mb-4" placeholder="enter start time here" required>
+
+              <br/>
+              <label for="editTrainingEndDate" class="sr-only">End time</label>
+              <input type="date" id="editTrainingEndDate" name="editTrainingEndDate" [(ngModel)]="editTrainingFormData.endDate"
+                     class="form-control " placeholder="enter end date here" required>
+              <label for="editTrainingEndTime" class="sr-only"></label>
+              <input type="time" id="editTrainingEndTime" name="editTrainingEndTime" [(ngModel)]="editTrainingFormData.endTime"
+                     class="form-control mb-4" placeholder="enter end time here" required>
+
+              <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+              <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!editTrainingForm.valid">Save</button>
+
+            </form>
+          </div>
+          <a *ngIf="!deleteTrainingMode" (click)="changeDeleteTrainingMode()"><button type="button" class="btn btn-danger mx-3 mb-4">Delete</button></a>
+          <a *ngIf="deleteTrainingMode" (click)="changeDeleteTrainingMode()"><button type="button" class="btn btn-danger mx-3 mb-4">Hide</button></a>
+          <a *ngIf="deleteTrainingMode" (click)="deleteTraining(training.id)"><button type="button" class="btn btn-outline-danger mb-4">Confirm</button></a>
+        </ng-container>
+      </div>
+    </ng-container>
+</div>

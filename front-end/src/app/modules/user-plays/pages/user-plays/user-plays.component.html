@@ -1,0 +1,157 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-6">
+      <h4>Plays</h4>
+      <h6 *ngIf="!isUserPlayStarted">You can start play</h6>
+      <h6 *ngIf="isUserPlayStarted">Play is in progress, stop it when you finish</h6>
+
+      <button [disabled]="isUserPlayStarted"  *ngIf="!userPlayStartMode" (click)="changeUserPlayStartMode()" type="button" class="btn btn-dark mb-4" >Start play</button>
+      <button *ngIf="userPlayStartMode" (click)="changeUserPlayStartMode()" type="button" class="btn btn-outline-dark mb-4" >Hide</button>
+      <button [disabled]="!isUserPlayStarted" (click)="stopUserPlay()" type="button" class="btn btn-dark mx-3 mb-4" >Stop play</button>
+
+      <div *ngIf="userPlayStartMode">
+        <form #startUserPlayForm="ngForm" (ngSubmit)="startUserPlay(startUserPlayForm)">
+          <h4 class="form-signin-heading">Start play</h4>
+
+          <br/>
+          <label for="startPlayName" class="sr-only">Play Name</label>
+          <input type="text" id="startPlayName" name="startPlayName" [(ngModel)]="userPlayRequest.name"
+                 class="form-control" placeholder="enter name of play here" required>
+
+          <br/>
+          <label for="startPlayDescription" class="sr-only">Description</label>
+          <input type="text" id="startPlayDescription" name="startPlayDescription" [(ngModel)]="userPlayRequest.description"
+                 class="form-control" placeholder="enter description of play here" required>
+
+          <br/>
+          <label for="map" class="sr-only">Map</label>
+          <select [(ngModel)]="userPlayRequest.map"
+                  name="map" id="map" class="form-select mb-4" required>
+            <ng-container *ngFor="let map of maps">
+              <option [ngValue]="map">{{map}}</option>
+            </ng-container>
+          </select>
+
+          <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+          <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!startUserPlayForm.valid">Start</button>
+
+        </form>
+      </div>
+
+      <h4>Play List</h4>
+      <h6 *ngIf="userPlays.length == 0">There are no plays</h6>
+      <div *ngFor="let play of userPlays">
+        <hr/>
+        <p><span class="fw-bold">Name:</span> {{play.name}}</p>
+        <p><span class="fw-bold">Description:</span> {{play.description}}</p>
+        <p><span class="fw-bold">Start Time:</span> {{play.startTime | date:"long"}}</p>
+        <p><span class="fw-bold">End Time:</span> {{play.endTime | date:"long"}}</p>
+        <p><span class="fw-bold">Map:</span> {{play.map}}</p>
+        <button (click)="showPlayResultsAndMetrics(play.id)" type="button" class="btn btn-dark mb-4" >Show Info</button>
+        <button *ngIf="!editUserPlayMode" (click)="changeEditUserPlayMode()" type="button" class="btn btn-outline-dark mx-3 mb-4" >Edit</button>
+        <button *ngIf="editUserPlayMode" (click)="changeEditUserPlayMode()" type="button" class="btn btn-outline-dark mx-3 mb-4" >Hide</button>
+        <button (click)="deletePlay(play.id)" type="button" class="btn btn-danger mb-4" >Delete</button>
+
+        <div *ngIf="editUserPlayMode">
+          <form #editUserPlayForm="ngForm" (ngSubmit)="editUserPlay(editUserPlayForm, play.id)">
+            <h4 class="form-signin-heading">Edit play</h4>
+
+            <br/>
+            <label for="editPlayName" class="sr-only">Play Name</label>
+            <input type="text" id="editPlayName" name="editPlayName" [(ngModel)]="editUserPlayRequest.name"
+                   class="form-control" placeholder="enter name of play here" required>
+
+            <br/>
+            <label for="editPlayDescription" class="sr-only">Description</label>
+            <input type="text" id="editPlayDescription" name="editPlayDescription" [(ngModel)]="editUserPlayRequest.description"
+                   class="form-control" placeholder="enter description of play here" required>
+
+            <br/>
+            <label for="editMap" class="sr-only">Map</label>
+            <select [(ngModel)]="editUserPlayRequest.map"
+                    name="editMap" id="editMap" class="form-select mb-4" required>
+              <ng-container *ngFor="let map of maps">
+                <option [ngValue]="map">{{map}}</option>
+              </ng-container>
+            </select>
+
+            <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+            <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!editUserPlayForm.valid">Save</button>
+
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+    <div class="col-md-6">
+      <h4>Play Results</h4>
+      <h6 *ngIf="selectedUserPlayId == undefined">Select play</h6>
+      <hr/>
+      <div *ngIf="selectedUserPlayId != undefined">
+        <p><span class="fw-bold">Rounds Played:</span> {{selectedUserPlayResult.roundsPlayed}}</p>
+        <p><span class="fw-bold">Kills:</span> {{selectedUserPlayResult.kills}}</p>
+        <p><span class="fw-bold">Deaths:</span> {{selectedUserPlayResult.deaths}}</p>
+        <p><span class="fw-bold">Assists:</span> {{selectedUserPlayResult.assists}}</p>
+        <p><span class="fw-bold">Headshots:</span> {{selectedUserPlayResult.headshots}}</p>
+        <button *ngIf="!editResultMode" (click)="changeEditResultMode()" type="button" class="btn btn-dark mb-4" >Edit </button>
+        <button *ngIf="editResultMode" (click)="changeEditResultMode()" type="button" class="btn btn-outline-dark mb-4" >Hide </button>
+
+        <div *ngIf="editResultMode">
+          <form #editResultForm="ngForm" (ngSubmit)="editResultPlay(editResultForm, selectedUserPlayId)">
+            <h4 class="form-signin-heading">Edit play</h4>
+
+            <br>
+            <label for="editRoundsPlayed" class="sr-only">Rounds Played</label>
+            <input type="number" id="editRoundsPlayed" name="editRoundsPlayed" [(ngModel)]="editPlayResultRequest.roundsPlayed"
+                   class="form-control" placeholder="enter rounds played here" required>
+
+            <br>
+            <label for="editKills" class="sr-only">Kills</label>
+            <input type="number" id="editKills" name="editKills" [(ngModel)]="editPlayResultRequest.kills"
+                   class="form-control" placeholder="enter kills here" required>
+
+            <br>
+            <label for="editDeaths" class="sr-only">Deaths</label>
+            <input type="number" id="editDeaths" name="editDeaths" [(ngModel)]="editPlayResultRequest.deaths"
+                   class="form-control" placeholder="enter deaths here" required>
+
+            <br>
+            <label for="editAssists" class="sr-only">Assists</label>
+            <input type="number" id="editAssists" name="editAssists" [(ngModel)]="editPlayResultRequest.assists"
+                   class="form-control" placeholder="enter assists here" required>
+
+            <br>
+            <label for="editHeadshots" class="sr-only">Headshots</label>
+            <input type="number" id="editHeadshots" name="editHeadshots" [(ngModel)]="editPlayResultRequest.headshots"
+                   class="form-control mb-4" placeholder="enter headshots here" required>
+
+            <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+            <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!editResultForm.valid">Save</button>
+
+          </form>
+        </div>
+
+      </div>
+
+      <h4>Play Metrics</h4>
+      <h6 *ngIf="selectedUserPlayId == undefined">Select play</h6>
+      <div *ngIf="selectedUserPlayId != undefined">
+        <p><span class="fw-bold">Average Heart Rate:</span> {{selectedUserPlayMetrics.averageHeartRate}}</p>
+        <button *ngIf="!showMetricsMode" (click)="changeShowMetricsMode()" type="button" class="btn btn-dark mb-4" >Show Details </button>
+        <button *ngIf="showMetricsMode" (click)="changeShowMetricsMode()" type="button" class="btn btn-outline-dark mb-4" >Hide </button>
+        <ng-container *ngIf="showMetricsMode">
+          <div *ngFor="let metric of selectedUserPlayMetrics.metrics">
+            <hr/>
+            <p><span class="fw-bold">Heart Rate:</span> {{metric.heartRate}}</p>
+            <p><span class="fw-bold">Start Measuring Time:</span> {{metric.startMeasuringTime | date:"long"}}</p>
+            <p><span class="fw-bold">End Measuring Time:</span> {{metric.endMeasuringTime | date:"long"}}</p>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

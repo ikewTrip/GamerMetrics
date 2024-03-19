@@ -1,0 +1,124 @@
+<div class="container">
+
+    <div *ngIf="organizationRole == null">
+        <p class="text-center">You are not a member of any organization.</p>
+        <p class="text-center">You can create a new organization or check your invites to join one.</p>
+
+        <a *ngIf="!createOrganizationMode" (click)="changeCreateOrganizationMode()"><button type="button" class="btn btn-dark mb-4">Create Organization</button></a>
+        <a *ngIf="createOrganizationMode" (click)="changeCreateOrganizationMode()"><button type="button" class="btn btn-outline-dark mb-4">Hide</button></a>
+
+        <a *ngIf="!viewInvitesMode" (click)="changeViewInvitesMode()"><button type="button" class="btn btn-dark mb-4 mx-3">Check invites</button></a>
+        <a *ngIf="viewInvitesMode" (click)="changeViewInvitesMode()"><button type="button" class="btn btn-outline-dark mb-4 mx-3">Hide Invites</button></a>
+
+        <div *ngIf="createOrganizationMode">
+            <form #createOrganizationForm="ngForm" (ngSubmit)="createOrganization(createOrganizationForm)">
+                <h3 class="form-signin-heading">Create Organization</h3>
+
+                <br/>
+                <label for="Name" class="sr-only">Organization Name</label>
+                <input type="text" id="Name" name="Name" [(ngModel)]="createOrganizationRequest.name"
+                       class="form-control" placeholder="enter name of organization here" required>
+
+                <br/>
+                <label for="description" class="sr-only">Description</label>
+                <input type="text" id="description" name="description" [(ngModel)]="createOrganizationRequest.description"
+                       class="form-control mb-4" placeholder="enter description here" required>
+
+                <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+                <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!createOrganizationForm.valid">Create</button>
+
+            </form>
+        </div>
+        <ng-container *ngIf="viewInvitesMode">
+          <p *ngIf="invites.length == 0">You have no invites yet</p>
+          <div *ngFor="let invite of invites">
+            <hr/>
+            <p>Message: {{invite.message}}</p>
+            <p>Team: {{invite.teamName}}</p>
+            <p>Role: {{invite.organizationRoleName}}</p>
+            <p>Date: {{invite.creationDate | date:"long"}}</p>
+            <a (click)="acceptInvite(invite.id)"><button type="button" class="btn btn-dark mb-4">Accept</button></a>
+          </div>
+        </ng-container>
+    </div>
+
+    <div *ngIf="organizationRole != null">
+        <h3 class="mb-3" >Organization Info</h3>
+        <p>Name: {{ organizationInfo.name }}</p>
+        <p>Description: {{ organizationInfo.description }}</p>
+        <p>Creation Date: {{ organizationInfo.creationDate | date:'long' }}</p>
+        <p>Creator Name: {{ organizationInfo.creatorName}}</p>
+
+
+        <ng-container *ngIf="organizationRole == 'CREATOR'">
+            <a *ngIf="!editOrganizationMode" (click)="changeEditOrganizationMode()"><button type="button" class="btn btn-dark mb-4">Edit Organization Info</button></a>
+            <a *ngIf="editOrganizationMode" (click)="changeEditOrganizationMode()"><button type="button" class="btn btn-outline-dark mb-4">Hide</button></a>
+
+            <a *ngIf="!deleteOrganizationMode" (click)="changeDeleteOrganizationMode()"><button type="button" class="btn btn-danger mx-3 mb-4">Delete Organization</button></a>
+            <a *ngIf="deleteOrganizationMode" (click)="changeDeleteOrganizationMode()"><button type="button" class="btn btn-danger mx-3 mb-4">Hide</button></a>
+            <a *ngIf="deleteOrganizationMode" (click)="deleteOrganization()"><button type="button" class="btn btn-outline-danger mb-4">Confirm</button></a>
+
+            <div *ngIf="editOrganizationMode">
+                <form #editOrganizationForm="ngForm" (ngSubmit)="editOrganizationInfo(editOrganizationForm)">
+                    <h3 class="form-signin-heading">Edit Organization Info</h3>
+
+                    <br/>
+                    <label for="EditName" class="sr-only">Organization Name</label>
+                    <input type="text" id="EditName" name="EditName" [(ngModel)]="editOrganizationRequest.name"
+                           class="form-control" placeholder="enter name of organization here" required>
+
+                    <br/>
+                    <label for="EditDescription" class="sr-only">Description</label>
+                    <input type="text" id="EditDescription" name="EditDescription" [(ngModel)]="editOrganizationRequest.description"
+                           class="form-control mb-4" placeholder="enter description here" required>
+
+                    <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+                    <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!editOrganizationForm.valid">Save</button>
+
+                </form>
+            </div>
+        </ng-container>
+
+        <div *ngIf="organizationInfo.teams.length == 0"><p>There isn`t any team created yet.</p>
+        </div>
+
+        <ng-container *ngIf="organizationRole == 'CREATOR'">
+            <h4>You can create a new team.</h4>
+            <a *ngIf="!createTeamMode" (click)="changeCreateTeamMode()"><button type="button" class="btn btn-dark mb-4">Create Team</button></a>
+            <a *ngIf="createTeamMode" (click)="changeCreateTeamMode()"><button type="button" class="btn btn-outline-dark mb-4">Hide</button></a>
+
+            <div *ngIf="createTeamMode">
+                <form #createTeamForm="ngForm" (ngSubmit)="createTeam(createTeamForm)">
+                    <h3 class="form-signin-heading">Create Team</h3>
+
+                    <br/>
+                    <label for="TeamName" class="sr-only">Team Name</label>
+                    <input type="text" id="TeamName" name="TeamName" [(ngModel)]="createTeamRequest.name"
+                           class="form-control" placeholder="enter name of team here" required>
+
+                    <br/>
+                    <label for="TeamDescription" class="sr-only">Description</label>
+                    <input type="text" id="TeamDescription" name="TeamDescription" [(ngModel)]="createTeamRequest.description"
+                           class="form-control mb-4" placeholder="enter description here" required>
+
+                    <div *ngIf="invalidCredentials" class="alert alert-danger">{{errorMessage}}</div>
+
+                    <button class="btn btn-lg btn-outline-dark mb-4" type="submit" [disabled]="!createTeamForm.valid">Create</button>
+
+                </form>
+            </div>
+        </ng-container>
+
+        <h4>{{organizationInfo.name}} teams:</h4>
+        <div *ngFor="let team of organizationInfo.teams">
+            <hr/>
+            <p>Name: {{ team.name }}</p>
+            <p>Description: {{ team.description }}</p>
+            <p>Creation Date: {{ team.creationDate | date:'long' }}</p>
+            <a [routerLink]="['/organization/team', team.id]"><button type="button" class="btn btn-dark mb-4">Go to team</button></a>
+        </div>
+    </div>
+
+</div>

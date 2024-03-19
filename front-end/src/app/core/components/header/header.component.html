@@ -1,0 +1,18 @@
+<header class="container d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+  <a href="/" class="d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none">
+    <img src="../assets/images/logo.jpg" alt="logo" width="269" height="60">
+  </a>
+
+  <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+    <li><a routerLink="/organization" class="nav-link px-3 link-dark">My Organization</a></li>
+    <li><a routerLink="/profile" class="nav-link px-3 link-dark">Profile</a></li>
+    <li><a routerLink="/userplays" class="nav-link px-3 link-dark">Plays</a></li>
+  </ul>
+
+  <div class="col-md-3 text-end">
+    <a *ngIf="!isUserAuthenticated()" routerLink="/auth/login"><button type="button" class="btn btn-outline-dark">Login</button></a>
+    <a *ngIf="!isUserAuthenticated()" routerLink="/auth/register"><button type="button" class="btn btn-dark mx-3">Sign-up</button></a>
+    <a *ngIf="isUserAuthenticated()" (click)="logOut()"><button type="button" class="btn btn-dark">Log-out</button></a>
+    <a *ngIf="checkIsUserAdmin()" routerLink="/admin/panel" ><button type="button" class="btn btn-dark mx-3">Admin</button></a>
+  </div>
+</header>
